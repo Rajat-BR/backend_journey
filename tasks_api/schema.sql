@@ -1,6 +1,0 @@
-CREATE TABLE tasks(
-    id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    completed BOOLEAN NOT NULL DEFAULT 0,
-    user_id INTEGER NOT NULL
-)
