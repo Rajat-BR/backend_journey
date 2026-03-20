@@ -1,1 +1,0 @@
-SELECT username, tasks.id, title, completed FROM users JOIN tasks ON user_id = users.id WHERE users.id = 2;
