@@ -14,8 +14,12 @@ def post(book: Book):
     return {"message": "Book created Successfully"}
 
 @router.get("/books", response_model=list[BookOut])
-def fetch_books():
-    books = get_books()
+def fetch_books(author: str | None = None, 
+                is_read: bool | None = None, 
+                sort: str | None = None, 
+                order: str | None = None
+                ):
+    books = get_books(author, is_read, sort, order)
     return books
 
 @router.get("/books/{book_id}", response_model=BookOut)

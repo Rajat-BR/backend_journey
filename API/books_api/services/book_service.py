@@ -25,19 +25,59 @@ def create_book(book: Book):
     conn.close()
 
 
-def get_books():
+def get_books(author: str | None,
+              is_read: bool | None, 
+              sort: str | None, 
+              order: str | None
+              ):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM books")
+    query = "SELECT * FROM books"
+    conditions = []
+    values = []
+
+    if author is not None:
+        conditions.append("author = ?")
+        values.append(author)
+
+    if is_read is not None:
+        conditions.append("is_read = ?")
+        values.append(is_read)
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    allowed_sorts = ["id", "title"]
+    allowed_orders = ["asc", "desc"]
+
+    if sort is not None:
+        if sort not in allowed_sorts:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Invalid sort field")
+        
+        if order is None:
+            order = "asc"
+
+        if order not in allowed_orders:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Invalid order field")
+        
+        query += f" ORDER BY {sort} {order}"
+    
+    elif order is not None:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Order requires sort first")
+
+    cursor.execute(query, tuple(values))
     rows = cursor.fetchall()
 
-    books = [format_book(row) for row in rows]
     conn.close()
-
+    books = [format_book(row) for row in rows]
+    
     return books
 
-def get_book(book_id: int):
+def get_book(book_id: int, ):
     conn = get_connection()
     cursor = conn.cursor()
 
