@@ -28,7 +28,9 @@ def create_book(book: Book):
 def get_books(author: str | None,
               is_read: bool | None, 
               sort: str | None, 
-              order: str | None
+              order: str | None,
+              limit: int | None,
+              offset: int | None
               ):
     conn = get_connection()
     cursor = conn.cursor()
@@ -37,6 +39,7 @@ def get_books(author: str | None,
     conditions = []
     values = []
 
+    #Filtering
     if author is not None:
         conditions.append("author = ?")
         values.append(author)
@@ -51,6 +54,8 @@ def get_books(author: str | None,
     allowed_sorts = ["id", "title"]
     allowed_orders = ["asc", "desc"]
 
+
+    #Sorting and directing
     if sort is not None:
         if sort not in allowed_sorts:
             conn.close()
@@ -69,6 +74,29 @@ def get_books(author: str | None,
         conn.close()
         raise HTTPException(status_code=400, detail="Order requires sort first")
 
+
+    #Limit and Offset
+    if limit is not None:
+        if limit <= 0:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Invalid limit field")
+        
+        if offset is not None and offset < 0:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Invalid offset field")
+        
+        if offset is None:
+            offset = 0
+        
+        query += " LIMIT ? OFFSET ?"
+        values.append(limit)
+        values.append(offset)
+    
+    elif offset is not None:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Limit must exist before offset")
+        
+        
     cursor.execute(query, tuple(values))
     rows = cursor.fetchall()
 

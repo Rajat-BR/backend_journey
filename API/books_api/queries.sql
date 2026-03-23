@@ -1,6 +1,1 @@
-CREATE TABLE books(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    author TEXT NOT NULL,
-    is_read BOOL DEFAULT 0
-);
+SELECT * FROM books LIMIT -1 OFFSET 0;
