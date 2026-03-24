@@ -15,13 +15,14 @@ def post(book: Book):
 
 @router.get("/books", response_model=list[BookOut])
 def fetch_books(author: str | None = None, 
-                is_read: bool | None = None, 
+                is_read: bool | None = None,
+                search: str | None = None, 
                 sort: str | None = None, 
                 order: str | None = None,
                 limit: int | None = None,
                 offset: int | None = None
                 ):
-    books = get_books(author, is_read, sort, order, limit, offset)
+    books = get_books(author, is_read, search, sort, order, limit, offset)
     return books
 
 @router.get("/books/{book_id}", response_model=BookOut)

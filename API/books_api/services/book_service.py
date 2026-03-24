@@ -26,7 +26,8 @@ def create_book(book: Book):
 
 
 def get_books(author: str | None,
-              is_read: bool | None, 
+              is_read: bool | None,
+              search: str | None,  
               sort: str | None, 
               order: str | None,
               limit: int | None,
@@ -47,6 +48,11 @@ def get_books(author: str | None,
     if is_read is not None:
         conditions.append("is_read = ?")
         values.append(is_read)
+
+    if search is not None:
+        conditions.append("(title LIKE ? OR author LIKE ?)")
+        values.append(f"%{search}%")
+        values.append(f"%{search}%")
 
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
