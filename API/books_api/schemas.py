@@ -7,7 +7,7 @@ class Book(BaseModel):
 
 class BookOut(BaseModel):
     id: int
-    title: str
-    author: str
+    title: str = Field(min_length=1, max_length=100)
+    author: str = Field(min_length=1, max_length=100)
     is_read: bool
     
