@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class Session(BaseModel):
+class SessionCreate(BaseModel):
     subject: str
     topic: str
     duration: int
@@ -12,3 +12,9 @@ class SessionOut(BaseModel):
     topic: str
     duration: int
     notes: str
+
+class SessionUpdate(BaseModel):
+    subject: str | None = None
+    topic: str | None = None
+    duration: int | None = None
+    notes: str | None = None

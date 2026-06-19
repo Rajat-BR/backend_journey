@@ -94,7 +94,7 @@ it if your FastAPI server runs somewhere other than
 `http://127.0.0.1:8000`.
 
 ## How to run it
-
+ 
 1. Make sure you have [Node.js](https://nodejs.org) installed.
 2. From inside the `study-tracker-frontend` folder, run:
    ```

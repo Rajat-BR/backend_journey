@@ -49,10 +49,10 @@ export async function loginUser(email, password) {
 // (Not called anywhere yet - useful later once you add real login
 // sessions/tokens and want to check "who is currently logged in".)
 export async function getCurrentUser() {
-  // const response = await fetch(`${BASE_URL}/me`, {
-  //   headers: { Authorization: `Bearer ${token}` },
-  // });
-  // return response.json();
+  const response = await fetch(`${BASE_URL}/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.json();
 
   return Promise.resolve(mockUser);
 }
@@ -60,8 +60,8 @@ export async function getCurrentUser() {
 // FastAPI Endpoint:
 // GET /sessions
 export async function getSessions() {
-  // const response = await fetch(`${BASE_URL}/sessions`);
-  // return response.json();
+  const response = await fetch(`${BASE_URL}/sessions`);
+  return response.json();
 
   return Promise.resolve(mockSessions);
 }
@@ -69,12 +69,12 @@ export async function getSessions() {
 // FastAPI Endpoint:
 // POST /sessions
 export async function addSession(sessionData) {
-  // const response = await fetch(`${BASE_URL}/sessions`, {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(sessionData),
-  // });
-  // return response.json();
+  const response = await fetch(`${BASE_URL}/sessions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(sessionData),
+  });
+  return response.json();
 
   console.log("[mock] addSession:", sessionData);
   return Promise.resolve({ id: Date.now(), ...sessionData });
@@ -83,12 +83,12 @@ export async function addSession(sessionData) {
 // FastAPI Endpoint:
 // PATCH /sessions/{id}
 export async function updateSession(id, updatedFields) {
-  // const response = await fetch(`${BASE_URL}/sessions/${id}`, {
-  //   method: "PATCH",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(updatedFields),
-  // });
-  // return response.json();
+  const response = await fetch(`${BASE_URL}/sessions/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedFields),
+  });
+  return response.json();
 
   console.log("[mock] updateSession:", id, updatedFields);
   return Promise.resolve({ id, ...updatedFields });
@@ -97,10 +97,10 @@ export async function updateSession(id, updatedFields) {
 // FastAPI Endpoint:
 // DELETE /sessions/{id}
 export async function deleteSession(id) {
-  // const response = await fetch(`${BASE_URL}/sessions/${id}`, {
-  //   method: "DELETE",
-  // });
-  // return response.json();
+  const response = await fetch(`${BASE_URL}/sessions/${id}`, {
+    method: "DELETE",
+  });
+  return response.json();
 
   console.log("[mock] deleteSession:", id);
   return Promise.resolve({ success: true });
