@@ -1,11 +1,18 @@
 from database.connection import get_connection
 from schemas.sessions import SessionCreate, SessionUpdate
 
-def fetch_sessions():
+def fetch_sessions(search):
     conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
+        if search:
+            search_text = f"%{search}%"
+            cursor.execute("SELECT * FROM sessions WHERE subject LIKE ? OR topic LIKE ? OR notes LIKE ?",(search_text, search_text, search_text))
+            rows = cursor.fetchall()
+            if not rows:
+                return []
+            return [dict(row) for row in rows]
 
         cursor.execute("SELECT * FROM sessions")
         rows = cursor.fetchall()

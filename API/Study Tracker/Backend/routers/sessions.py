@@ -9,9 +9,9 @@ def home():
     return {"message": "API running"}
 
 @router.get("/sessions", response_model=list[SessionOut])
-def get_sessions():
+def get_sessions(search: str | None = None):
     try:
-        return fetch_sessions()
+        return fetch_sessions(search)
     except ValueError:
         raise HTTPException(status_code=404, detail="No Sessions found")
     
