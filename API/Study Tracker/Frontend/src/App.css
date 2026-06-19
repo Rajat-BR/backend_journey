@@ -1,0 +1,90 @@
+/* Minimal, plain CSS - no Tailwind/Material UI, kept deliberately simple */
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 480px;
+  margin: 40px auto;
+  background: white;
+  padding: 24px;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.page h2 {
+  margin-top: 0;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+input,
+textarea {
+  padding: 8px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #3a78b5;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #4a90d9;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  font-weight: normal;
+  font-size: 14px;
+}
+
+.error {
+  color: #c0392b;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.session-actions button {
+  margin-top: 8px;
+  margin-right: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
