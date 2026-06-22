@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from schemas.sessions import SessionCreate, SessionOut, SessionUpdate
+from fastapi import APIRouter, HTTPException, Depends
+from schemas.sessions import SessionCreate, SessionOut, SessionUpdate, SessionFilter
 from services.sessions import fetch_sessions, fetch_session_by_id, new_session, change_session, remove_session
 
 router = APIRouter()
@@ -9,9 +9,9 @@ def home():
     return {"message": "API running"}
 
 @router.get("/sessions", response_model=list[SessionOut])
-def get_sessions(search: str | None = None):
+def get_sessions(filters: SessionFilter = Depends(), search: str | None = None):
     try:
-        return fetch_sessions(search)
+        return fetch_sessions(filters, search)
     except ValueError:
         raise HTTPException(status_code=404, detail="No Sessions found")
     

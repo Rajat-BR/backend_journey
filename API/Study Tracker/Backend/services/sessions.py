@@ -1,25 +1,35 @@
 from database.connection import get_connection
 from schemas.sessions import SessionCreate, SessionUpdate
 
-def fetch_sessions(search):
+def fetch_sessions(filters, search):
     conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        if search:
-            search_text = f"%{search}%"
-            cursor.execute("SELECT * FROM sessions WHERE subject LIKE ? OR topic LIKE ? OR notes LIKE ?",(search_text, search_text, search_text))
-            rows = cursor.fetchall()
-            if not rows:
-                return []
-            return [dict(row) for row in rows]
+        conditions = []
+        values = []
+        filter_dict = filters.model_dump(exclude_none=True)
 
-        cursor.execute("SELECT * FROM sessions")
-        rows = cursor.fetchall()
-
-        if not rows:
-            raise ValueError("No Session Found")
+        if filter_dict:
+            for key, value in filter_dict.items():
+                conditions.append(f"{key} = ?")
+                values.append(value)
         
+        if search:
+                search_text = f"%{search}%"
+                conditions.append("(subject LIKE ? OR topic LIKE ? OR notes LIKE ?)")
+                values.extend([search_text]*3)
+        
+        
+        query = "SELECT * FROM sessions"
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        
+        cursor.execute(query, values)
+        
+        rows = cursor.fetchall()
+        if not rows:
+            return []
         return [dict(row) for row in rows]
     
     finally:

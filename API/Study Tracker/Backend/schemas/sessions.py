@@ -18,3 +18,8 @@ class SessionUpdate(BaseModel):
     topic: str | None = None
     duration: int | None = None
     notes: str | None = None
+
+class SessionFilter(BaseModel):
+    subject: str | None = None
+    topic: str | None = None
+    notes: str | None = None
