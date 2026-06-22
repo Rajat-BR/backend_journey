@@ -1,13 +1,17 @@
 from database.connection import get_connection
 from schemas.sessions import SessionCreate, SessionUpdate
+from exceptions.custom_exceptions import SessionNotFoundError, InvalidSortFieldError
 
-def fetch_sessions(filters, search):
+def fetch_sessions(filters, search, sort_by, order, page, limit):
     conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
         conditions = []
         values = []
+        allowed_sort = {"id", "subject", "topic", "duration", "notes"}
+        allowed_order = {"asc","desc"}
+        order = order.lower()
         filter_dict = filters.model_dump(exclude_none=True)
 
         if filter_dict:
@@ -20,10 +24,30 @@ def fetch_sessions(filters, search):
                 conditions.append("(subject LIKE ? OR topic LIKE ? OR notes LIKE ?)")
                 values.extend([search_text]*3)
         
-        
         query = "SELECT * FROM sessions"
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
+
+        if sort_by:
+            if sort_by not in allowed_sort:
+                raise InvalidSortFieldError()
+            
+            if order not in allowed_order:
+                order = "asc"
+
+            query += f" ORDER BY {sort_by} {order.upper()}"
+
+        
+        if page < 1:
+            raise ValueError("Invalid page")
+        if limit < 1:
+            raise ValueError("Invalid Limit")
+        
+        offset = (page - 1) * limit
+
+        query += " LIMIT ? OFFSET ?"
+        values.extend([limit, offset])
+
         
         cursor.execute(query, values)
         
@@ -46,7 +70,7 @@ def fetch_session_by_id(id: int):
 
         row = cursor.fetchone()
         if not row:
-            raise ValueError("Session not found")
+            raise SessionNotFoundError()
         
         return dict(row)
     
@@ -98,7 +122,7 @@ def change_session(id: int, update_data: SessionUpdate):
             values)   
 
         if cursor.rowcount == 0:
-            raise ValueError("Session not found")
+            raise SessionNotFoundError()
         
         conn.commit()
         return {"message": "Session updated successfully"} 
@@ -115,7 +139,7 @@ def remove_session(id: int):
         cursor.execute("DELETE FROM sessions WHERE id = ?", (id,))
 
         if cursor.rowcount == 0:
-            raise ValueError("Session Not Found")
+            raise SessionNotFoundError()
         
         conn.commit()
         return {"message": "Session removed Successfully"}
