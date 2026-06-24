@@ -3,3 +3,6 @@ class SessionNotFoundError(Exception):
 
 class InvalidSortFieldError(Exception):
     pass
+
+class UserAlreadyExistsError(Exception):
+    pass

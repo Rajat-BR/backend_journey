@@ -1,6 +1,7 @@
 from database.connection import get_connection
-from schemas.sessions import SessionCreate, SessionUpdate
-from exceptions.custom_exceptions import SessionNotFoundError, InvalidSortFieldError
+from schemas.sessions import SessionCreate, SessionUpdate, UserLogin, UserRegister, UserOut
+from exceptions.custom_exceptions import SessionNotFoundError, InvalidSortFieldError, UserAlreadyExistsError
+from auth.security import hash_password, verify_password
 
 def fetch_sessions(filters, search, sort_by, order, page, limit):
     conn = None
@@ -143,6 +144,36 @@ def remove_session(id: int):
         
         conn.commit()
         return {"message": "Session removed Successfully"}
+    finally:
+        if conn:
+            conn.close()
+
+
+def register_user(user: UserRegister):
+    conn = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id FROM users WHERE username = ?", (user.username,)) #Only care whether the username exists or not. Why select everything ?
+        row = cursor.fetchone()
+
+        if row:
+            raise UserAlreadyExistsError("Username already exists !")
+        
+        hashed_password = hash_password(user.password)
+
+        cursor.execute("INSERT INTO users(username,hashed_password) VALUES (?, ?)", (user.username, hashed_password))
+
+        user_id = cursor.lastrowid
+        
+        conn.commit()
+
+        return UserOut(
+            id=user_id,
+            username=user.username
+        )
+
     finally:
         if conn:
             conn.close()
