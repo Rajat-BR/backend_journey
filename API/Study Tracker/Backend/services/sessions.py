@@ -1,7 +1,7 @@
 from database.connection import get_connection
-from schemas.sessions import SessionCreate, SessionUpdate, UserLogin, UserRegister, UserOut
-from exceptions.custom_exceptions import SessionNotFoundError, InvalidSortFieldError, UserAlreadyExistsError
-from auth.security import hash_password, verify_password
+from schemas.sessions import SessionCreate, SessionUpdate, UserLogin, UserRegister, UserOut, Token
+from exceptions.custom_exceptions import SessionNotFoundError, InvalidSortFieldError, UserAlreadyExistsError, InvalidCredentialsError
+from auth.security import hash_password, verify_password, create_access_token
 
 def fetch_sessions(filters, search, sort_by, order, page, limit):
     conn = None
@@ -154,24 +154,58 @@ def register_user(user: UserRegister):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-
+        
+        # Check if the user exists
         cursor.execute("SELECT id FROM users WHERE username = ?", (user.username,)) #Only care whether the username exists or not. Why select everything ?
         row = cursor.fetchone()
 
         if row:
             raise UserAlreadyExistsError("Username already exists !")
         
+        # Else
         hashed_password = hash_password(user.password)
 
         cursor.execute("INSERT INTO users(username,hashed_password) VALUES (?, ?)", (user.username, hashed_password))
 
-        user_id = cursor.lastrowid
-        
         conn.commit()
 
+        user_id = cursor.lastrowid
+        
         return UserOut(
             id=user_id,
             username=user.username
+        )
+
+    finally:
+        if conn:
+            conn.close()
+
+def login_user(data: UserLogin):
+    conn = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Check if the user exists
+        cursor.execute("SELECT id, hashed_password FROM users WHERE username = ?", (data.username,))
+        rows = cursor.fetchone()
+
+        if not rows:
+            raise InvalidCredentialsError("Invalid Credential")
+        
+        user_id = rows["id"]
+        hashed_password = rows["hashed_password"]
+
+        if not verify_password(data.password, hashed_password):
+            raise InvalidCredentialsError("Invalid Credentials")
+        
+        token = create_access_token(
+            {"sub": str(user_id)}    #user_id is an integer, so convert it to dicitionary
+        )
+        
+        return Token(
+            access_token=token,
+            token_type="bearer"
         )
 
     finally:

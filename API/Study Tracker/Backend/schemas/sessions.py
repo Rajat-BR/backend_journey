@@ -1,5 +1,9 @@
 from pydantic import BaseModel
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
 class UserRegister(BaseModel):
     username: str
     password: str
@@ -11,7 +15,6 @@ class UserLogin(BaseModel):
 class UserOut(BaseModel):
     id: int
     username: str
-
 
 class SessionCreate(BaseModel):
     subject: str
@@ -36,3 +39,4 @@ class SessionFilter(BaseModel):
     subject: str | None = None
     topic: str | None = None
     notes: str | None = None
+

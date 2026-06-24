@@ -6,3 +6,6 @@ class InvalidSortFieldError(Exception):
 
 class UserAlreadyExistsError(Exception):
     pass
+
+class InvalidCredentialsError(Exception):
+    pass
