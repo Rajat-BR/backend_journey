@@ -1,7 +1,8 @@
-import secrets
 from passlib.context import CryptContext
-from jose import jwt
+from jose import jwt, JWTError
 from datetime import timedelta, datetime, timezone
+from fastapi.security import OAuth2PasswordBearer
+from exceptions.custom_exceptions import InvalidTokenError
 
 
 pwd_context = CryptContext(
@@ -11,7 +12,7 @@ pwd_context = CryptContext(
 
 
 #JWT Configurations
-SECRET_KEY = secrets.token_hex(32)
+SECRET_KEY = "d7028625d8a2e26f2512a14bc40dd391fadab6214d86a15c171efae841958e4a"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -33,3 +34,20 @@ def create_access_token(data: dict):
         SECRET_KEY,
         algorithm=ALGORITHM
     )   
+
+def decode_access_token(token: str):
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+        return payload
+    except JWTError:
+        raise InvalidTokenError("Invalid Token !")
+
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/login"
+)
+    

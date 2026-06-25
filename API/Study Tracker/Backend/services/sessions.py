@@ -1,15 +1,17 @@
+from fastapi import Depends
 from database.connection import get_connection
 from schemas.sessions import SessionCreate, SessionUpdate, UserLogin, UserRegister, UserOut, Token
 from exceptions.custom_exceptions import SessionNotFoundError, InvalidSortFieldError, UserAlreadyExistsError, InvalidCredentialsError
-from auth.security import hash_password, verify_password, create_access_token
+from auth.security import hash_password, verify_password, create_access_token, oauth2_scheme, decode_access_token
 
-def fetch_sessions(filters, search, sort_by, order, page, limit):
+def fetch_sessions(user_id, filters, search, sort_by, order, page, limit):
     conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
         conditions = []
         values = []
+        values.append(user_id)
         allowed_sort = {"id", "subject", "topic", "duration", "notes"}
         allowed_order = {"asc","desc"}
         order = order.lower()
@@ -25,9 +27,9 @@ def fetch_sessions(filters, search, sort_by, order, page, limit):
                 conditions.append("(subject LIKE ? OR topic LIKE ? OR notes LIKE ?)")
                 values.extend([search_text]*3)
         
-        query = "SELECT * FROM sessions"
+        query = "SELECT * FROM sessions WHERE user_id = ?"
         if conditions:
-            query += " WHERE " + " AND ".join(conditions)
+            query += " AND " + " AND ".join(conditions)
 
         if sort_by:
             if sort_by not in allowed_sort:
@@ -61,13 +63,13 @@ def fetch_sessions(filters, search, sort_by, order, page, limit):
         if conn:
             conn.close()
 
-def fetch_session_by_id(id: int):
+def fetch_session_by_id(id: int, user_id: int):
     conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM sessions WHERE id = ?", (id,))
+        cursor.execute("SELECT * FROM sessions WHERE id = ? AND user_id = ?", (id, user_id))
 
         row = cursor.fetchone()
         if not row:
@@ -80,17 +82,17 @@ def fetch_session_by_id(id: int):
             conn.close()
 
 
-def new_session(session: SessionCreate):
+def new_session(session: SessionCreate, user_id):
     conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO sessions (subject, topic, duration, notes) 
-            VALUES (?, ?, ?, ?)
+            INSERT INTO sessions (subject, topic, duration, notes, user_id) 
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (session.subject, session.topic, session.duration, session.notes))
+            (session.subject, session.topic, session.duration, session.notes, user_id))
         conn.commit()
 
         return {"message": f"session added successfully, last row : {cursor.lastrowid}"}
@@ -99,7 +101,7 @@ def new_session(session: SessionCreate):
         if conn:
             conn.close()
 
-def change_session(id: int, update_data: SessionUpdate):
+def change_session(id: int, update_data: SessionUpdate, user_id):
     conn = None
     try:
         conn = get_connection()
@@ -114,11 +116,12 @@ def change_session(id: int, update_data: SessionUpdate):
             values.append(value)
 
         query_part = ", ".join(fields)
-        values.append(id)
+        values.extend(id, user_id)
         cursor.execute(f"""
             UPDATE sessions
             SET {query_part}
             WHERE id = ?
+            AND user_id = ?
                 """,
             values)   
 
@@ -131,13 +134,13 @@ def change_session(id: int, update_data: SessionUpdate):
         if conn:
             conn.close()
 
-def remove_session(id: int):
+def remove_session(id: int, user_id):
     conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("DELETE FROM sessions WHERE id = ?", (id,))
+        cursor.execute("DELETE FROM sessions WHERE id = ? AND user_id = ?", (id,user_id))
 
         if cursor.rowcount == 0:
             raise SessionNotFoundError()
@@ -180,14 +183,14 @@ def register_user(user: UserRegister):
         if conn:
             conn.close()
 
-def login_user(data: UserLogin):
+def login_user(form_data):
     conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
         # Check if the user exists
-        cursor.execute("SELECT id, hashed_password FROM users WHERE username = ?", (data.username,))
+        cursor.execute("SELECT id, hashed_password FROM users WHERE username = ?", (form_data.username,))
         rows = cursor.fetchone()
 
         if not rows:
@@ -196,7 +199,7 @@ def login_user(data: UserLogin):
         user_id = rows["id"]
         hashed_password = rows["hashed_password"]
 
-        if not verify_password(data.password, hashed_password):
+        if not verify_password(form_data.password, hashed_password):
             raise InvalidCredentialsError("Invalid Credentials")
         
         token = create_access_token(
@@ -210,4 +213,5 @@ def login_user(data: UserLogin):
 
     finally:
         if conn:
-            conn.close()
+            conn.close()  
+    
