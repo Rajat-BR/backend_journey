@@ -116,7 +116,7 @@ def change_session(id: int, update_data: SessionUpdate, user_id):
             values.append(value)
 
         query_part = ", ".join(fields)
-        values.extend(id, user_id)
+        values.extend([id, user_id])
         cursor.execute(f"""
             UPDATE sessions
             SET {query_part}
